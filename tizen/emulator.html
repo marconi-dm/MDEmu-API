@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MDEmu · Emulador HTTPS</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#050608;color:#fff;font:18px Arial,Helvetica,sans-serif}#game{width:100%;height:100%}#status{position:fixed;z-index:20;left:24px;top:24px;max-width:70vw;padding:14px 20px;border-radius:11px;background:rgba(16,19,31,.94);border:1px solid #51496d;line-height:1.5}#return{position:fixed;z-index:21;right:24px;top:24px;background:#242637;color:#fff;border:1px solid #8b74db;font:18px Arial,sans-serif;border-radius:10px;padding:12px 18px;cursor:pointer}#return:focus{outline:3px solid #fff}
+</style>
+</head>
+<body>
+<div id="game"></div>
+<div id="status">Conectando à API…</div>
+<button id="return" type="button">← Biblioteca</button>
+<script>
+(function () {
+  'use strict';
+  // EDITE SOMENTE ESTA URL após publicar a API na Vercel.
+  var API_BASE = 'https://SEU-PROJETO.vercel.app';
+  var status = document.getElementById('status');
+  var gameId = new URLSearchParams(window.location.search).get('id') || 'metroid';
+  document.getElementById('return').onclick = function () {
+    location.href = 'index.html';
+  };
+
+  function fail(message) {
+    status.style.display = 'block';
+    status.textContent = message;
+    console.error('[MDEmu] ' + message);
+  }
+
+  if (API_BASE.indexOf('SEU-PROJETO') >= 0) {
+    fail('Configure API_BASE com a URL real do seu projeto Vercel.');
+    return;
+  }
+
+  fetch(API_BASE + '/api/games', { cache: 'no-store' })
+    .then(function (r) {
+      if (!r.ok) throw new Error('Catálogo HTTP ' + r.status);
+      return r.json();
+    })
+    .then(function (response) {
+      var games = response.games || [];
+      var game = games.filter(function (g) { return g.id === gameId; })[0];
+      if (!game) throw new Error('Jogo não encontrado na API: ' + gameId);
+      if (!/^https:\/\//.test(game.romUrl) || !/^https:\/\//.test(game.emulatorDataUrl)) {
+        throw new Error('A API precisa devolver URLs HTTPS válidas.');
+      }
+
+      // EmulatorJS recebe somente URLs HTTPS, eliminando GET file:///roms/...
+      window.EJS_player = '#game';
+      window.EJS_core = game.core || 'snes';
+      window.EJS_gameName = game.title;
+      window.EJS_gameID = Number(game.gameId) || 1001;
+      window.EJS_gameUrl = game.romUrl;
+      window.EJS_pathtodata = game.emulatorDataUrl;
+      window.EJS_startOnLoaded = true;
+      window.EJS_threads = false;
+      window.EJS_color = '#9c87ed';
+      window.EJS_Buttons = {
+        saveState: true, loadState: true,
+        gamepad: true, settings: true,
+        quickSave: true, quickLoad: true
+      };
+      // Controles: mantenha a configuração nativa do EmulatorJS nesta fase.
+      // Não interceptamos gamepad dentro do jogo para evitar comandos duplicados.
+      window.EJS_ready = function () {
+        status.textContent = 'Emulador pronto. Inicializando jogo…';
+      };
+      window.EJS_onGameStart = function () {
+        status.style.display = 'none';
+      };
+
+      status.textContent = 'Carregando núcleo SNES via HTTPS…';
+      var script = document.createElement('script');
+      script.src = game.emulatorDataUrl + 'loader.js';
+      script.onerror = function () {
+        fail('Não foi possível obter loader.js na Vercel. Verifique /diagnostico.html.');
+      };
+      document.body.appendChild(script);
+    })
+    .catch(function (e) {
+      fail('Erro na API: ' + (e.message || String(e)));
+    });
+})();
+</script>
+</body>
+</html>

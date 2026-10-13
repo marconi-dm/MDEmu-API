@@ -1,0 +1,7 @@
+{
+  "name": "mdemu-api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "API e recursos HTTPS para o MDEmu na Samsung Tizen"
+}

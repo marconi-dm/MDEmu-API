@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="pt-BR">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>MDEmu • Diagnóstico</title>
+<style>body{font:18px Arial,sans-serif;background:#0c0e16;color:#f3f3fb;padding:35px;max-width:1100px;margin:auto}h1{color:#bba5ff}.result{padding:15px;margin:12px 0;border-radius:10px;background:#202436;border:1px solid #46465d;overflow-wrap:anywhere}.ok{border-color:#268b67}.bad{border-color:#bb5258}.warn{color:#ffc87a}button{background:#795bcd;color:white;border:0;border-radius:9px;font-size:18px;padding:14px;cursor:pointer}code{color:#b3d8ff}</style>
+</head><body><h1>MDEmu • Diagnóstico HTTPS</h1><p>Esta página testa os arquivos sem executar jogos. Se algum arquivo faltar, aparece abaixo.</p><button id="run">Testar novamente</button><div id="results"></div>
+<script>
+(function(){
+ const items=[
+  ['/api/health','API / saúde',true],
+  ['/api/games','API / catálogo',true],
+  ['/emulatorjs/data/loader.js','Motor / loader.js',true],
+  ['/emulatorjs/data/emulator.min.js','Motor / emulator.min.js',true],
+  ['/emulatorjs/data/cores/snes9x-legacy-wasm.data','SNES / núcleo legacy',true],
+  ['/emulatorjs/data/cores/snes9x-wasm.data','SNES / núcleo padrão',false],
+  ['/emulatorjs/data/compression/extract7z.js','Extração / extract7z.js',true],
+  ['/emulatorjs/data/cores/reports/snes9x.json','SNES / report',false],
+  ['/roms/teste.sfc','ROM de teste',true]
+ ];
+ const list=document.getElementById('results');
+ async function test(){
+   list.textContent='Verificando...';
+   let output=[];
+   for(const [url,label,required] of items){
+     try{
+       // Um GET com Range permite checar existência sem pedir um arquivo grande inteiro
+       // quando o host aceita requisições parciais.
+       const res=await fetch(url,{method:'GET',headers:{Range:'bytes=0-0'},cache:'no-store'});
+       if(res.body&&res.body.cancel)await res.body.cancel();
+       output.push({url,label,required,ok:res.ok,status:res.status});
+     }catch(e){output.push({url,label,required,ok:false,status:e.message});}
+   }
+   list.innerHTML='';
+   output.forEach(x=>{
+     const el=document.createElement('div');el.className='result '+(x.ok?'ok':'bad');
+     el.textContent=(x.ok?'✓ OK':'✗ FALHA')+' — '+x.label+' — '+x.url+' — HTTP '+x.status+(x.required?'':' (opcional dependendo do núcleo)');
+     list.appendChild(el);
+   });
+ }
+ document.getElementById('run').onclick=test;test();
+})();
+</script></body></html>

@@ -1,0 +1,1 @@
+Copie AQUI a pasta completa data/ da distribuição oficial do EmulatorJS, preservando subpastas e arquivos.

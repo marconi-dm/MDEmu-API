@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>MDEmu • Teste HTTPS</title><style>html,body,#game{margin:0;width:100%;height:100%;background:#050608;color:white;font:18px Arial,sans-serif}#status{position:fixed;left:20px;top:20px;z-index:100;background:#171b30;padding:16px 22px;border-radius:12px;max-width:70vw}a{position:fixed;top:18px;right:18px;z-index:101;color:#fff;background:#423363;padding:14px;text-decoration:none;border-radius:9px}</style></head>
+<body><div id="game"></div><div id="status">Consultando API…</div><a href="/">Início</a>
+<script>
+(async function(){
+ const status=document.getElementById('status');
+ try{
+   const id=new URLSearchParams(location.search).get('id')||'metroid';
+   const response=await fetch('/api/games',{cache:'no-store'});
+   if(!response.ok)throw new Error('API HTTP '+response.status);
+   const data=await response.json();
+   const game=(data.games||[]).find(x=>x.id===id);
+   if(!game)throw new Error('Jogo não cadastrado: '+id);
+   const rom=await fetch(game.romUrl,{method:'HEAD'});
+   if(!rom.ok)throw new Error('ROM não disponível: HTTP '+rom.status+' — '+game.romUrl);
+   window.EJS_player='#game';window.EJS_core=game.core||'snes';
+   window.EJS_gameName=game.title;window.EJS_gameID=game.gameId;
+   window.EJS_gameUrl=game.romUrl;window.EJS_pathtodata=game.emulatorDataUrl;
+   window.EJS_startOnLoaded=true;window.EJS_threads=false;
+   window.EJS_Buttons={saveState:true,loadState:true,gamepad:true,settings:true,quickSave:true,quickLoad:true};
+   window.EJS_ready=()=>{status.textContent='Emulador carregado';};
+   window.EJS_onGameStart=()=>{status.style.display='none';};
+   const script=document.createElement('script');script.src=game.emulatorDataUrl+'loader.js';
+   script.onerror=()=>{status.textContent='Falha ao carregar o loader.js remoto';};
+   document.body.appendChild(script);
+ }catch(err){status.textContent='Erro: '+err.message;console.error(err);}
+})();
+</script></body></html>

@@ -1,0 +1,10 @@
+No config.xml EXISTENTE do MDEmu, dentro de <widget>, preserve o ID e o certificado.
+Verifique as permissões abaixo (sem duplicá-las):
+
+<tizen:privilege name="http://tizen.org/privilege/internet"/>
+<access origin="https://SEU-PROJETO.vercel.app" subdomains="true"/>
+
+Substitua SEU-PROJETO pelo domínio real da Vercel.
+Se houver CSP restritiva, será preciso permitir HTTPS para connect-src/script-src,
+sem desabilitar segurança indiscriminadamente.
+O aplicativo atual não requer filesystem.read para baixar uma ROM remota.

@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="pt-BR">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>MDEmu · Biblioteca</title>
+<style>
+*{box-sizing:border-box}html,body{width:100%;height:100%;margin:0}body{background:#0d0f17;color:#f9f9fc;font:22px Arial,sans-serif}.app{display:flex;flex-direction:column;min-height:100vh;padding:5vh 6vw}header{display:flex;align-items:center;justify-content:space-between}.brand{font-weight:800;font-size:38px;letter-spacing:.05em}.brand span{color:#aa96ef}.header-right{color:#9ba2b8;font-size:17px}.heading{font-size:52px;margin:7vh 0 3vh}.subtitle{color:#a7a9bc;font-size:20px;margin:0 0 4vh}#games{display:flex;flex-direction:column;gap:18px;max-width:1250px;width:100%}.game{border:2px solid #3c4056;border-radius:18px;padding:25px 34px;text-align:left;background:#1a1e2c;color:#fff;display:flex;align-items:center;gap:28px;font-size:25px;cursor:pointer}.game .tile{font-size:26px;padding:19px 22px;background:#392e60;border-radius:11px;color:#ddd1ff}.game small{font-size:16px;color:#a9adbc;display:block;margin-top:8px}.game.selected,.game:focus{background:#30284e;border-color:#bba4ff;outline:3px solid #e2d6ff;outline-offset:3px}.note{color:#f6acac;min-height:1.5em;margin-top:22px;font-size:18px}.foot{color:#9ca1b4;margin-top:auto;padding:18px 0;font-size:18px}
+</style></head>
+<body><div class="app"><header><div class="brand">MD<span>EMU</span></div><div class="header-right">SUPER NINTENDO</div></header><main><h1 class="heading">Minha biblioteca</h1><p class="subtitle">Escolha um jogo para começar.</p><div id="games"></div><p id="error" class="note">Consultando catálogo…</p></main><footer class="foot">Analógico ou direcional: navegar · A: jogar</footer></div>
+<script>
+(function(){
+ 'use strict';
+ // O mesmo domínio configurado em tizen/emulator.html.
+ var API_BASE='https://SEU-PROJETO.vercel.app';
+ var list=document.getElementById('games');
+ var error=document.getElementById('error');
+ var games=[],selected=0,locked=false,wasA=false,lastDirection=0,lastMove=0;
+ function render(){
+  list.innerHTML='';
+  games.forEach(function(g,i){
+   var b=document.createElement('button');b.className='game'+(i===selected?' selected':'');
+   b.type='button';b.innerHTML='<span class="tile">16</span><span></span>';
+   b.lastChild.textContent=g.title;
+   var sub=document.createElement('small');sub.textContent='SNES • '+g.id;b.lastChild.appendChild(sub);
+   b.onclick=function(){launch(i);};list.appendChild(b);
+  });
+  if(list.children[selected])list.children[selected].focus();
+ }
+ function launch(i){if(locked||!games[i])return;locked=true;location.href='emulator.html?id='+encodeURIComponent(games[i].id);}
+ function move(direction){if(!games.length)return;selected=(selected+direction+games.length)%games.length;render();}
+ document.addEventListener('keydown',function(e){
+  if(e.key==='ArrowDown'||e.key==='ArrowRight'){e.preventDefault();move(1);}
+  if(e.key==='ArrowUp'||e.key==='ArrowLeft'){e.preventDefault();move(-1);}
+  if(e.key==='Enter'){e.preventDefault();launch(selected);}
+ });
+ function poll(){
+  var pads=navigator.getGamepads?navigator.getGamepads():[];
+  var gp=null;
+  for(var i=0;i<pads.length;i++){if(pads[i]&&pads[i].connected){gp=pads[i];break;}}
+  if(gp){
+   var press=function(n){return !!(gp.buttons[n]&&gp.buttons[n].pressed);};
+   var dy=gp.axes.length>1?gp.axes[1]:0;
+   var dir=press(13)||dy>.55?1:press(12)||dy<-.55?-1:0;
+   var now=Date.now();
+   if(dir&&(dir!==lastDirection||now-lastMove>250)){move(dir);lastMove=now;}
+   lastDirection=dir;
+   var a=press(0);if(a&&!wasA)launch(selected);wasA=a;
+  }
+  requestAnimationFrame(poll);
+ }
+ if(API_BASE.indexOf('SEU-PROJETO')>=0){error.textContent='Configure API_BASE com o endereço do seu projeto Vercel.';return;}
+ fetch(API_BASE+'/api/games',{cache:'no-store'}).then(function(r){if(!r.ok)throw Error('HTTP '+r.status);return r.json();}).then(function(data){
+   games=(data.games||[]);error.textContent=games.length?'':'Nenhum jogo cadastrado na API.';render();poll();
+ }).catch(function(e){error.textContent='Não foi possível buscar o catálogo: '+e.message;});
+})();
+</script></body></html>
