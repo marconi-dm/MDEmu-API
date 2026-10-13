@@ -6,13 +6,14 @@
 const games = [
   {
     id: 'metroid',
-    title: 'Jogo SNES de teste',
+    title: 'Super Metroid',
     system: 'snes',
     core: 'snes',
     gameId: 1001,
-    romPath: '/roms/teste.sfc'
+    romPath: '/roms/metroid.sfc'
   }
 ];
+
 
 export function GET(request) {
   const origin = new URL(request.url).origin;
