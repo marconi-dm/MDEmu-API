@@ -1,0 +1,33 @@
+<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>MDEmu LAB | SNES9x 2005</title><style>
+  :root { color-scheme:dark; }
+  * { box-sizing:border-box }
+  html,body { width:100%;height:100%;margin:0;background:#080911;color:#f6f2ff;font-family:Arial,Helvetica,sans-serif;overflow:hidden }
+  .frame { height:100%;display:flex;flex-direction:column;gap:1.2vh;align-items:center;padding:1.4vh 3vw }
+  header {width:100%;display:flex;justify-content:space-between;align-items:center;gap:16px}
+  .brand {font-weight:800;font-size:clamp(18px,2vw,30px);letter-spacing:.08em}
+  .brand span {color:#b7a5ff}
+  .lab {color:#b0b1c2;font-size:clamp(12px,1.1vw,17px)}
+  .screen {height:76vh;max-height:calc((100vw - 40px) * .75);width:auto;max-width:94vw;aspect-ratio:4/3;border:2px solid #51496b;background:#000;box-shadow:0 18px 80px rgba(0,0,0,.65);border-radius:6px;display:flex;align-items:center;justify-content:center;overflow:hidden}
+  canvas {width:100%;height:100%;image-rendering:pixelated;display:block}
+  .bar {display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:12px;width:100%;min-height:50px}
+  button {background:#262039;color:#fff;border:1px solid #7c689c;border-radius:10px;padding:11px 18px;font-size:16px;font-weight:700;cursor:pointer}
+  button:focus {outline:3px solid #c8a9ff}
+  button[disabled] {opacity:.45}
+  #msg {font-size:clamp(13px,1.25vw,19px);color:#c8c2dc;text-align:center;min-height:1.4em;margin:0;max-width:100%}
+  #stats {font-size:clamp(11px,.95vw,16px);color:#afa8c5;text-align:center;min-height:1.1em;margin:0}
+  .note {color:#87839e;font-size:clamp(10px,.9vw,13px);text-align:center}
+  @media(max-height:650px){.screen{height:66vh}.frame{gap:5px}}
+</style></head><body>
+<div class="frame">
+ <header><div class="brand">MD<span>EMU</span></div><div class="lab">LABORATÓRIO • SNES9X 2005</div></header>
+ <div class="screen"><canvas id="snes" width="256" height="224"></canvas></div>
+ <div class="bar">
+   <button id="start">A · INICIAR TESTE</button>
+   <button id="mute" disabled>Áudio: ligado</button>
+   <button id="back">← VOLTAR</button>
+ </div>
+ <p id="msg" role="status">Aguardando catálogo da API…</p>
+ <p id="stats">Ainda não iniciado.</p>
+ <div class="note">Xbox: A/B/X/Y e direcional · LB + RB + Y muda áudio · LB + RB + View volta | Teste experimental, sem alterar saves do EmulatorJS</div>
+</div>
+<script type="module">import {initLab} from './lab-snes2005/lab.js';initLab({apiBase:location.origin,libraryUrl:''});</script></body></html>
